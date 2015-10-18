@@ -16,7 +16,9 @@ REDIRECT_FILE="$APP_ROOT/REDIRECTS"
 NGINX_CONF="$APP_ROOT/nginx.conf"
 TEMPLATE="$(dirname "$0")/templates/redirect.conf"
 TEMPLATE_TLS="$(dirname "$0")/templates/redirect.tls.conf"
+# shellcheck disable=SC2034
 NGINX_PORT=$(config_get "$APP" DOKKU_NGINX_PORT || true)
+# shellcheck disable=SC2034
 NGINX_SSL_PORT=$(config_get "$APP" DOKKU_NGINX_SSL_PORT || true)
 while read line; do
   [[ -z "$line" ]] && continue
@@ -27,15 +29,17 @@ while read line; do
   if [[ -n "$(is_ssl_enabled "$APP")" ]]; then
     SSL_HOSTNAME=$(get_ssl_hostnames "$APP")
     [[ -n "$SSL_HOSTNAME" ]] && SSL_HOSTNAME_REGEX=$(echo "$SSL_HOSTNAME" | xargs | sed 's|\.|\\.|g' | sed 's/\*/\[^\.\]\*/g' | sed 's/ /|/g')
-    if [[ -n $(echo "$DOMAIN" | egrep "^$SSL_HOSTNAME_REGEX$") ]] && [[ -n $(echo "$DEST" | egrep "^$SSL_HOSTNAME_REGEX$") ]]; then
+    if echo "$DOMAIN" | egrep -q "^$SSL_HOSTNAME_REGEX$" && echo "$DEST" | egrep -q "^$SSL_HOSTNAME_REGEX$"; then
       APP_SSL_PATH="$APP_ROOT/tls"
       if [[ "$(is_ssl_enabled "$APP")" == "app" ]]; then
+        # shellcheck disable=SC2034
         SSL_DIRECTIVES=$(cat <<EOF
 ssl_certificate     $APP_SSL_PATH/server.crt;
 ssl_certificate_key $APP_SSL_PATH/server.key;
 EOF
 )
       elif [[ "$(is_ssl_enabled "$APP")" == "global" ]]; then
+        # shellcheck disable=SC2034
         SSL_DIRECTIVES=""
       fi
       eval "cat <<< \"$(< "$TEMPLATE_TLS")\" >> $NGINX_CONF"
