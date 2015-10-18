@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+PLUGIN_BASE_PATH="$PLUGIN_PATH"
+if [[ -n $DOKKU_API_VERSION ]]; then
+  PLUGIN_BASE_PATH="$PLUGIN_ENABLED_PATH"
+fi
+source "$PLUGIN_BASE_PATH/common/functions"
+source "$PLUGIN_BASE_PATH/certs/functions"
+source "$PLUGIN_BASE_PATH/config/functions"
+
+APP="$1"; APP_ROOT="$DOKKU_ROOT/$APP"
+REDIRECT_FILE="$APP_ROOT/REDIRECTS"
+[[ -z $REDIRECT_FILE ]] && exit 0
+
+NGINX_CONF="$APP_ROOT/nginx.conf"
+TEMPLATE="$(dirname "$0")/templates/redirect.conf"
+TEMPLATE_TLS="$(dirname "$0")/templates/redirect.tls.conf"
+NGINX_PORT=$(config_get "$APP" DOKKU_NGINX_PORT || true)
+NGINX_SSL_PORT=$(config_get "$APP" DOKKU_NGINX_SSL_PORT || true)
+while read line; do
+  [[ -z "$line" ]] && continue
+  DOMAIN=$(echo "$line" | cut -d: -f1)
+  DEST=${line//[^:]*:/}
+  dokku_log_info1 "Configuring redirect for $DOMAIN to $DEST..."
+  eval "cat <<< \"$(< "$TEMPLATE")\" >> $NGINX_CONF"
+  if [[ -n "$(is_ssl_enabled "$APP")" ]]; then
+    SSL_HOSTNAME=$(get_ssl_hostnames "$APP")
+    [[ -n "$SSL_HOSTNAME" ]] && SSL_HOSTNAME_REGEX=$(echo "$SSL_HOSTNAME" | xargs | sed 's|\.|\\.|g' | sed 's/\*/\[^\.\]\*/g' | sed 's/ /|/g')
+    if [[ -n $(echo "$DOMAIN" | egrep "^$SSL_HOSTNAME_REGEX$") ]] && [[ -n $(echo "$DEST" | egrep "^$SSL_HOSTNAME_REGEX$") ]]; then
+      APP_SSL_PATH="$APP_ROOT/tls"
+      if [[ "$(is_ssl_enabled "$APP")" == "app" ]]; then
+        SSL_DIRECTIVES=$(cat <<EOF
+ssl_certificate     $APP_SSL_PATH/server.crt;
+ssl_certificate_key $APP_SSL_PATH/server.key;
+EOF
+)
+      elif [[ "$(is_ssl_enabled "$APP")" == "global" ]]; then
+        SSL_DIRECTIVES=""
+      fi
+      eval "cat <<< \"$(< "$TEMPLATE_TLS")\" >> $NGINX_CONF"
+    fi
+  fi
+done <<< "$(< "$REDIRECT_FILE")"

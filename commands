@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+PLUGIN_BASE_PATH="$PLUGIN_PATH"
+if [[ -n $DOKKU_API_VERSION ]]; then
+  PLUGIN_BASE_PATH="$PLUGIN_ENABLED_PATH"
+fi
+source "$PLUGIN_BASE_PATH/common/functions"
+
+if [[ $1 == redirect || $1 == redirect:* ]]; then
+  [[ -z $2 ]] && echo "Please specify an app to run the command on" && exit 1
+  verify_app_name "$2"
+  APP="$2"; APP_ROOT="$DOKKU_ROOT/$APP"
+  REDIRECT_FILE="$APP_ROOT/REDIRECTS"
+fi
+
+case "$1" in
+  redirect:set)
+    [[ -z $3 || -z $4 ]] && echo "Please provide a source domain and a destination" && exit 1
+    SOURCE="$3"; DEST="$4"
+    touch "$REDIRECT_FILE"
+    grep -q "^$SOURCE:" "$REDIRECT_FILE" && dokku_log_fail "Source domain is already redirected"
+    dokku_log_info1 "Setting redirect for $APP..."
+    echo "$SOURCE:$DEST" >> "$REDIRECT_FILE"
+    is_deployed "$APP" && dokku nginx:build-config "$APP"
+    dokku_log_verbose "done"
+    ;;
+
+  redirect:unset)
+    [[ -z $3 ]] && echo "Please provide a source domain" && exit 1
+    DOMAIN="$3"
+    dokku_log_info1 "Unsetting redirect for $APP..."
+    touch "$REDIRECT_FILE"
+    sed -i "/^$DOMAIN:.*/d" "$REDIRECT_FILE"
+    is_deployed "$APP" && dokku nginx:build-config "$APP"
+    dokku_log_verbose "done"
+    ;;
+
+  redirect)
+    [[ ! -s $REDIRECT_FILE ]] && dokku_log_warn "There are no redirects for $APP" && exit 0
+    (echo "SOURCE:DESTINATION"; cat "$DOKKU_ROOT/$APP/REDIRECTS") | column -s: -t
+    ;;
+
+  help)
+    HELP=$(cat<<EOF
+    redirect <app>, Display the redirects set on app
+    redirect:set <app> <source> <destination>, Set a redirect from <source> domain to <destination> domain
+    redirect:unset <app> <source>, Unset a redirect from <source>
+EOF
+)
+    if [[ -n $DOKKU_API_VERSION ]]; then
+      echo "$HELP"
+    else
+      cat && echo "$HELP"
+    fi
+    ;;
+
+  *)
+    exit $DOKKU_NOT_IMPLEMENTED_EXIT
+    ;;
+
+esac
