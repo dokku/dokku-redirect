@@ -11,7 +11,7 @@ source "$PLUGIN_BASE_PATH/config/functions"
 
 APP="$1"; APP_ROOT="$DOKKU_ROOT/$APP"
 REDIRECT_FILE="$APP_ROOT/REDIRECTS"
-[[ -z $REDIRECT_FILE ]] && exit 0
+[[ ! -s $REDIRECT_FILE ]] && exit 0
 
 NGINX_CONF="$APP_ROOT/nginx.conf"
 TEMPLATE="$(dirname "$0")/templates/redirect.conf"
