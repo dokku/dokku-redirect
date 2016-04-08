@@ -31,6 +31,7 @@ while read line; do
     [[ -n "$SSL_HOSTNAME" ]] && SSL_HOSTNAME_REGEX=$(echo "$SSL_HOSTNAME" | xargs | sed 's|\.|\\.|g' | sed 's/\*/\[^\.\]\*/g' | sed 's/ /|/g')
     if echo "$DOMAIN" | egrep -q "^$SSL_HOSTNAME_REGEX$" && echo "$DEST" | egrep -q "^$SSL_HOSTNAME_REGEX$"; then
       APP_SSL_PATH="$APP_ROOT/tls"
+      # shellcheck disable=SC2034
       SSL_DIRECTIVES=$(cat <<EOF
 ssl_certificate     $APP_SSL_PATH/server.crt;
 ssl_certificate_key $APP_SSL_PATH/server.key;
