@@ -26,22 +26,17 @@ while read line; do
   DEST=${line//[^:]*:/}
   dokku_log_info1 "Configuring redirect for $DOMAIN to $DEST..."
   eval "cat <<< \"$(< "$TEMPLATE")\" >> $NGINX_CONF"
-  if [[ -n "$(is_ssl_enabled "$APP")" ]]; then
+  if is_ssl_enabled "$APP"; then
     SSL_HOSTNAME=$(get_ssl_hostnames "$APP")
     [[ -n "$SSL_HOSTNAME" ]] && SSL_HOSTNAME_REGEX=$(echo "$SSL_HOSTNAME" | xargs | sed 's|\.|\\.|g' | sed 's/\*/\[^\.\]\*/g' | sed 's/ /|/g')
     if echo "$DOMAIN" | egrep -q "^$SSL_HOSTNAME_REGEX$" && echo "$DEST" | egrep -q "^$SSL_HOSTNAME_REGEX$"; then
       APP_SSL_PATH="$APP_ROOT/tls"
-      if [[ "$(is_ssl_enabled "$APP")" == "app" ]]; then
-        # shellcheck disable=SC2034
-        SSL_DIRECTIVES=$(cat <<EOF
+      # shellcheck disable=SC2034
+      SSL_DIRECTIVES=$(cat <<EOF
 ssl_certificate     $APP_SSL_PATH/server.crt;
 ssl_certificate_key $APP_SSL_PATH/server.key;
 EOF
 )
-      elif [[ "$(is_ssl_enabled "$APP")" == "global" ]]; then
-        # shellcheck disable=SC2034
-        SSL_DIRECTIVES=""
-      fi
       eval "cat <<< \"$(< "$TEMPLATE_TLS")\" >> $NGINX_CONF"
     fi
   fi
