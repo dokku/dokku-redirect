@@ -23,3 +23,7 @@ if [[ ! -f $BIN_STUBS/plugn ]]; then
   ln -s "$DOKKU_ROOT"/plugins/* "$DOKKU_ROOT"/plugins/available
   ln -s "$DOKKU_ROOT"/plugins/* "$DOKKU_ROOT"/plugins/enabled
 fi
+
+if [[ ! -f $BIN_STUBS/sigil ]]; then
+  wget -O- "$SIGIL_URL" | tar xzf - -C "$BIN_STUBS"
+fi
