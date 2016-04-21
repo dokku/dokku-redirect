@@ -28,7 +28,7 @@ lint:
 	# SC2068: Double quote array expansions, otherwise they're like $* and break on spaces. - https://github.com/koalaman/shellcheck/wiki/SC2068
 	# SC2086: Double quote to prevent globbing and word splitting - https://github.com/koalaman/shellcheck/wiki/SC2086
 	@echo linting...
-	@$(QUIET) find ./ -maxdepth 1 -not -path '*/\.*' | xargs file | egrep "shell|bash" | awk '{ print $$1 }' | sed 's/://g' | xargs shellcheck -e SC2046,SC2068,SC2086
+	@$(QUIET) find ./ -maxdepth 1 -not -path '*/\.*' | xargs file | egrep "shell|bash" | awk '{ print $$1 }' | sed 's/://g' | xargs shellcheck -e SC1090,SC2034
 
 unit-tests:
 	@echo running unit tests...
