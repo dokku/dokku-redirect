@@ -8,6 +8,7 @@ fi
 source "$PLUGIN_BASE_PATH/common/functions"
 source "$PLUGIN_BASE_PATH/certs/functions"
 source "$PLUGIN_BASE_PATH/config/functions"
+source "$PLUGIN_BASE_PATH/domains/functions"
 
 APP="$1"; APP_ROOT="$DOKKU_ROOT/$APP"
 REDIRECT_FILE="$APP_ROOT/REDIRECTS"
@@ -16,11 +17,10 @@ REDIRECT_FILE="$APP_ROOT/REDIRECTS"
 NGINX_CONF="$APP_ROOT/nginx.conf"
 TEMPLATE="$(dirname "$0")/templates/redirect.conf"
 TEMPLATE_TLS="$(dirname "$0")/templates/redirect.tls.conf"
-# shellcheck disable=SC2034
 NGINX_PORT=$(config_get "$APP" DOKKU_NGINX_PORT || true)
-# shellcheck disable=SC2034
 NGINX_SSL_PORT=$(config_get "$APP" DOKKU_NGINX_SSL_PORT || true)
-while read line; do
+
+while read -r line; do
   [[ -z "$line" ]] && continue
   DOMAIN=$(echo "$line" | cut -d: -f1)
   DEST=${line//[^:]*:/}
@@ -29,15 +29,12 @@ while read line; do
   if is_ssl_enabled "$APP"; then
     SSL_HOSTNAME=$(get_ssl_hostnames "$APP")
     [[ -n "$SSL_HOSTNAME" ]] && SSL_HOSTNAME_REGEX=$(echo "$SSL_HOSTNAME" | xargs | sed 's|\.|\\.|g' | sed 's/\*/\[^\.\]\*/g' | sed 's/ /|/g')
-    if echo "$DOMAIN" | egrep -q "^$SSL_HOSTNAME_REGEX$" && echo "$DEST" | egrep -q "^$SSL_HOSTNAME_REGEX$"; then
-      APP_SSL_PATH="$APP_ROOT/tls"
-      # shellcheck disable=SC2034
-      SSL_DIRECTIVES=$(cat <<EOF
+    APP_SSL_PATH="$APP_ROOT/tls"
+    SSL_DIRECTIVES=$(cat <<EOF
 ssl_certificate     $APP_SSL_PATH/server.crt;
 ssl_certificate_key $APP_SSL_PATH/server.key;
 EOF
 )
-      eval "cat <<< \"$(< "$TEMPLATE_TLS")\" >> $NGINX_CONF"
-    fi
+    eval "cat <<< \"$(< "$TEMPLATE_TLS")\" >> $NGINX_CONF"
   fi
 done <<< "$(< "$REDIRECT_FILE")"
