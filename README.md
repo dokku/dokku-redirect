@@ -2,16 +2,12 @@
 
 dokku-redirect is a plugin for [dokku][dokku] that gives the ability to set simple redirects for an application.
 
-This plugin only redirects one domain to another and does not handle complete URLs. If both domains are managed by dokku and are TLS enabled, then nginx configuration for https redirects will be handled automatically.
+This plugin only redirects one domain to another and does not handle complete URLs. If source domain is managed by dokku and is TLS enabled, then nginx configuration for https redirects will be handled automatically.
 
 ## Installation
 
 ```sh
-# dokku 0.3.26
-$ sudo git clone https://github.com/dokku/dokku-redirect.git /var/lib/dokku/plugins/redirect
-$ dokku plugins-install
-
-# dokku 0.4+
+# dokku 0.5+
 $ dokku plugin:install https://github.com/dokku/dokku-redirect.git
 ```
 
