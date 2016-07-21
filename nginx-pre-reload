@@ -30,7 +30,8 @@ redirect_nginx_pre_load_trigger() {
   fi
 
   local NGINX_CONF_PREPEND=$(mktemp)
-  trap "rm -f '$NGINX_CONF_PREPEND'" EXIT
+  # shellcheck disable=SC2064
+  trap "rm -f \"$NGINX_CONF_PREPEND\"" EXIT
 
   while read line; do
     [[ -z "$line" ]] && continue
