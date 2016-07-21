@@ -8,7 +8,9 @@ source "$PLUGIN_AVAILABLE_PATH/proxy/functions"
 source "$PLUGIN_AVAILABLE_PATH/nginx-vhosts/functions"
 
 redirect_nginx_pre_load_trigger() {
+  # shellcheck disable=SC2034
   declare desc="add nginx redirect servers"
+  # shellcheck disable=SC2034
   local trigger="redirect_nginx_pre_load_trigger"
 
   local APP="$1"
