@@ -16,7 +16,7 @@ redirect_nginx_pre_load_trigger() {
   local APP="$1"
   local APP_ROOT="$DOKKU_ROOT/$APP"
   local REDIRECT_FILE="$APP_ROOT/REDIRECTS"
-  [[ ! -s $REDIRECT_FILE ]] && exit 0
+  [[ ! -s "$REDIRECT_FILE" ]] && exit 0
 
   [[ "$(get_app_proxy_type "$APP")" == "nginx" ]] || exit 0
 
@@ -29,6 +29,9 @@ redirect_nginx_pre_load_trigger() {
     local APP_SSL_PATH="$DOKKU_ROOT/$APP/tls"
   fi
 
+  local NGINX_CONF_PREPEND=$(mktemp)
+  trap "rm -f '$NGINX_CONF_PREPEND'" EXIT
+
   while read line; do
     [[ -z "$line" ]] && continue
     local DOMAIN=$(echo "$line" | cut -d: -f1)
@@ -39,8 +42,13 @@ redirect_nginx_pre_load_trigger() {
           APP_SSL_PATH="$APP_SSL_PATH"
           DOMAIN="$DOMAIN" DEST_DOMAIN="$DEST_DOMAIN"
           PROXY_PORT_MAP="$PROXY_PORT_MAP")
-    sigil "${SIGIL_PARAMS[@]}" | cat -s >> "$NGINX_CONF"
+    sigil "${SIGIL_PARAMS[@]}" | cat -s >> "$NGINX_CONF_PREPEND"
   done <<< "$(< "$REDIRECT_FILE")"
+
+  if [[ -s "$NGINX_CONF_PREPEND" ]]; then
+    cat "$NGINX_CONF" >> "$NGINX_CONF_PREPEND"
+    cat "$NGINX_CONF_PREPEND" > "$NGINX_CONF"
+  fi
 }
 
 redirect_nginx_pre_load_trigger "$@"
