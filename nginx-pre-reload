@@ -1,43 +1,55 @@
 #!/usr/bin/env bash
 set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 
-PLUGIN_BASE_PATH="$PLUGIN_PATH"
-if [[ -n $DOKKU_API_VERSION ]]; then
-  PLUGIN_BASE_PATH="$PLUGIN_ENABLED_PATH"
-fi
-source "$PLUGIN_BASE_PATH/common/functions"
-source "$PLUGIN_BASE_PATH/certs/functions"
-source "$PLUGIN_BASE_PATH/config/functions"
+source "$PLUGIN_AVAILABLE_PATH/common/functions"
+source "$PLUGIN_AVAILABLE_PATH/certs/functions"
+source "$PLUGIN_AVAILABLE_PATH/config/functions"
+source "$PLUGIN_AVAILABLE_PATH/proxy/functions"
+source "$PLUGIN_AVAILABLE_PATH/nginx-vhosts/functions"
 
-APP="$1"; APP_ROOT="$DOKKU_ROOT/$APP"
-REDIRECT_FILE="$APP_ROOT/REDIRECTS"
-[[ ! -s $REDIRECT_FILE ]] && exit 0
+redirect_nginx_pre_load_trigger() {
+  # shellcheck disable=SC2034
+  declare desc="add nginx redirect servers"
+  # shellcheck disable=SC2034
+  local trigger="redirect_nginx_pre_load_trigger"
 
-NGINX_CONF="$APP_ROOT/nginx.conf"
-TEMPLATE="$(dirname "$0")/templates/redirect.conf"
-TEMPLATE_TLS="$(dirname "$0")/templates/redirect.tls.conf"
-# shellcheck disable=SC2034
-NGINX_PORT=$(config_get "$APP" DOKKU_NGINX_PORT || true)
-# shellcheck disable=SC2034
-NGINX_SSL_PORT=$(config_get "$APP" DOKKU_NGINX_SSL_PORT || true)
-while read line; do
-  [[ -z "$line" ]] && continue
-  DOMAIN=$(echo "$line" | cut -d: -f1)
-  DEST=${line//[^:]*:/}
-  dokku_log_info1 "Configuring redirect for $DOMAIN to $DEST..."
-  eval "cat <<< \"$(< "$TEMPLATE")\" >> $NGINX_CONF"
+  local APP="$1"
+  local APP_ROOT="$DOKKU_ROOT/$APP"
+  local REDIRECT_FILE="$APP_ROOT/REDIRECTS"
+  [[ ! -s "$REDIRECT_FILE" ]] && exit 0
+
+  [[ "$(get_app_proxy_type "$APP")" == "nginx" ]] || exit 0
+
+  local NGINX_CONF="$APP_ROOT/nginx.conf"
+  local NGINX_TEMPLATE="$(dirname "$0")/templates/nginx.conf.sigil"
+  local PROXY_PORT_MAP=$(config_get "$APP" DOKKU_PROXY_PORT_MAP || true)
+  local NGINX_VERSION="$(nginx -v 2>&1 | cut -d'/' -f 2)"
+  local SPDY_SUPPORTED="$(is_spdy_enabled "$NGINX_VERSION")"
   if is_ssl_enabled "$APP"; then
-    SSL_HOSTNAME=$(get_ssl_hostnames "$APP")
-    [[ -n "$SSL_HOSTNAME" ]] && SSL_HOSTNAME_REGEX=$(echo "$SSL_HOSTNAME" | xargs | sed 's|\.|\\.|g' | sed 's/\*/\[^\.\]\*/g' | sed 's/ /|/g')
-    if echo "$DOMAIN" | egrep -q "^$SSL_HOSTNAME_REGEX$" && echo "$DEST" | egrep -q "^$SSL_HOSTNAME_REGEX$"; then
-      APP_SSL_PATH="$APP_ROOT/tls"
-      # shellcheck disable=SC2034
-      SSL_DIRECTIVES=$(cat <<EOF
-ssl_certificate     $APP_SSL_PATH/server.crt;
-ssl_certificate_key $APP_SSL_PATH/server.key;
-EOF
-)
-      eval "cat <<< \"$(< "$TEMPLATE_TLS")\" >> $NGINX_CONF"
-    fi
+    local APP_SSL_PATH="$DOKKU_ROOT/$APP/tls"
   fi
-done <<< "$(< "$REDIRECT_FILE")"
+
+  local NGINX_CONF_PREPEND=$(mktemp)
+  # shellcheck disable=SC2064
+  trap "rm -f \"$NGINX_CONF_PREPEND\"" EXIT
+
+  while read line; do
+    [[ -z "$line" ]] && continue
+    local DOMAIN=$(echo "$line" | cut -d: -f1)
+    local DEST_DOMAIN=${line//[^:]*:/}
+    dokku_log_info1 "Configuring redirect for $DOMAIN to $DEST..."
+    local SIGIL_PARAMS=(-f $NGINX_TEMPLATE APP="$APP" DOKKU_ROOT="$DOKKU_ROOT"
+          SPDY_SUPPORTED="$SPDY_SUPPORTED"
+          APP_SSL_PATH="$APP_SSL_PATH"
+          DOMAIN="$DOMAIN" DEST_DOMAIN="$DEST_DOMAIN"
+          PROXY_PORT_MAP="$PROXY_PORT_MAP")
+    sigil "${SIGIL_PARAMS[@]}" | cat -s >> "$NGINX_CONF_PREPEND"
+  done <<< "$(< "$REDIRECT_FILE")"
+
+  if [[ -s "$NGINX_CONF_PREPEND" ]]; then
+    cat "$NGINX_CONF" >> "$NGINX_CONF_PREPEND"
+    cat "$NGINX_CONF_PREPEND" > "$NGINX_CONF"
+  fi
+}
+
+redirect_nginx_pre_load_trigger "$@"
