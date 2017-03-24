@@ -9,7 +9,7 @@ server {
   listen      {{ $listen_port }};
   server_name {{ $.DOMAIN }};
   access_log  off;
-  return 301  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
+  return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
 }
 {{ else if eq $scheme "https"}}
 server {
@@ -21,6 +21,6 @@ server {
   ssl_certificate     {{ $.APP_SSL_PATH }}/server.crt;
   ssl_certificate_key {{ $.APP_SSL_PATH }}/server.key;
 
-  return 301  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
+  return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
 }
 {{ end }}{{ end }}

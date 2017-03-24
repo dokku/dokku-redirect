@@ -15,10 +15,20 @@ $ dokku plugin:install https://github.com/dokku/dokku-redirect.git
 
 ```
 $ dokku help
-    redirect <app>                            Display the redirects set on app
-    redirect:set <app> <source> <destination> Set a redirect from <source> domain to <destination> domain
-    redirect:unset <app> <source>             Unset a redirect from <source>
+    redirect <app>                           Display the redirects set on app
+    redirect:set <app> <src> <dest> [<code>] Set a redirect from <src> domain to <dest> domain
+    redirect:unset <app> <src>               Unset a redirect from <source>
 ```
+
+## Redirect Codes
+
+| Code | Name               | Behavior                                           |
+| ---- | ------------------ | -------------------------------------------------- |
+| 301  | Moved Permanently  | __(Default)__ Permanent, preserves method          |
+| 302  | Found              | Temporary, may change method to GET                |
+| 303  | See Other          | (HTTP/1.1) Temporary, changes method to GET        |
+| 307  | Temporary Redirect | (HTTP/1.1) Temporary, preserves method             |
+
 
 ## Usage
 
@@ -26,8 +36,8 @@ Check redirects on my-app
 ```shell
 $ dokku redirect my-app
 
-SOURCE       DESTINATION
-ma.dokku.me  my-app.dokku.me
+SOURCE       DESTINATION      CODE
+ma.dokku.me  my-app.dokku.me  301
 ```
 
 Set a new redirect on my-app

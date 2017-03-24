@@ -17,11 +17,11 @@ fi
 case "$1" in
   redirect:set)
     [[ -z $3 || -z $4 ]] && echo "Please provide a source domain and a destination" && exit 1
-    SOURCE="$3"; DEST="$4"
+    SOURCE="$3"; DEST="$4"; CODE="${5:-301}"
     touch "$REDIRECT_FILE"
     grep -q "^$SOURCE:" "$REDIRECT_FILE" && dokku_log_fail "Source domain is already redirected"
     dokku_log_info1 "Setting redirect for $APP..."
-    echo "$SOURCE:$DEST" >> "$REDIRECT_FILE"
+    echo "$SOURCE:$DEST:$CODE" >> "$REDIRECT_FILE"
     is_deployed "$APP" && dokku nginx:build-config "$APP"
     dokku_log_verbose "done"
     ;;
@@ -38,14 +38,14 @@ case "$1" in
 
   redirect)
     [[ ! -s $REDIRECT_FILE ]] && dokku_log_warn "There are no redirects for $APP" && exit 0
-    (echo "SOURCE:DESTINATION"; cat "$DOKKU_ROOT/$APP/REDIRECTS") | column -s: -t
+    (echo "SOURCE:DESTINATION:CODE"; awk -F ':' 'BEGIN { OFS=":" } { if ($3 == "") { $3 = "301" }; print }' "$DOKKU_ROOT/$APP/REDIRECTS") | column -s: -t
     ;;
 
   help)
     HELP=$(cat<<EOF
     redirect <app>, Display the redirects set on app
-    redirect:set <app> <source> <destination>, Set a redirect from <source> domain to <destination> domain
-    redirect:unset <app> <source>, Unset a redirect from <source>
+    redirect:set <app> <src> <dest> [<code>], Set a redirect from <src> domain to <dest> domain
+    redirect:unset <app> <src>, Unset a redirect from <src>
 EOF
 )
     if [[ -n $DOKKU_API_VERSION ]]; then

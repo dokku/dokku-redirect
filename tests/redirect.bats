@@ -27,5 +27,5 @@ teardown() {
 @test "(redirect) list redirects when present" {
   dokku redirect:set my_app ma.dokku.me my-app.dokku.me
   run dokku redirect my_app
-  assert_contains "${lines[*]}" "ma.dokku.me  my-app.dokku.me"
+  assert_contains "${lines[*]}" "ma.dokku.me  my-app.dokku.me  301"
 }
