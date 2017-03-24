@@ -7,6 +7,7 @@ source "$PLUGIN_AVAILABLE_PATH/config/functions"
 source "$PLUGIN_AVAILABLE_PATH/proxy/functions"
 source "$PLUGIN_AVAILABLE_PATH/nginx-vhosts/functions"
 
+# shellcheck disable=SC2155
 redirect_nginx_pre_load_trigger() {
   # shellcheck disable=SC2034
   declare desc="add nginx redirect servers"
@@ -21,6 +22,7 @@ redirect_nginx_pre_load_trigger() {
   [[ "$(get_app_proxy_type "$APP")" == "nginx" ]] || exit 0
 
   local NGINX_CONF="$APP_ROOT/nginx.conf"
+
   local NGINX_TEMPLATE="$(dirname "$0")/templates/nginx.conf.sigil"
   local PROXY_PORT_MAP=$(config_get "$APP" DOKKU_PROXY_PORT_MAP || true)
   local NGINX_VERSION="$(nginx -v 2>&1 | cut -d'/' -f 2)"
@@ -33,7 +35,7 @@ redirect_nginx_pre_load_trigger() {
   # shellcheck disable=SC2064
   trap "rm -f \"$NGINX_CONF_PREPEND\"" EXIT
 
-  while read line; do
+  while read -r line; do
     [[ -z "$line" ]] && continue
     local DOMAIN=$(echo "$line" | cut -d: -f1)
     local DEST_DOMAIN=${line//[^:]*:/}
