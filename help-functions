@@ -58,7 +58,7 @@ fn-help-all() {
     fn-help-contents
   else
     cat<<help_desc
-    $PLUGIN_COMMAND_PREFIX, Plugin for managing $PLUGIN_SERVICE services
+    $PLUGIN_COMMAND_PREFIX, Plugin for managing application redirects
 help_desc
   fi
 
