@@ -8,7 +8,7 @@ setup() {
 }
 
 teardown() {
-  rm "$DOKKU_ROOT/my_app" -rf
+  rm -rf "$DOKKU_ROOT/my_app"
 }
 
 @test "($PLUGIN_COMMAND_PREFIX:hook:nginx-pre-reload) generates nginx config for redirects" {

@@ -6,7 +6,7 @@ setup() {
 }
 
 teardown() {
-  rm "$DOKKU_ROOT/my_app" -rf
+  rm -rf "$DOKKU_ROOT/my_app"
 }
 
 @test "(redirect) error when there are no arguments" {

@@ -1,27 +1,35 @@
 #!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/test_helper.bash"
 
 BIN_STUBS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/bin"
 
 if [[ ! -d $DOKKU_ROOT ]]; then
-  git clone https://github.com/progrium/dokku.git "$DOKKU_ROOT" > /dev/null
+  git clone https://github.com/dokku/dokku.git "$DOKKU_ROOT" > /dev/null
 fi
 
 cd "$DOKKU_ROOT"
 echo "Dokku version $DOKKU_VERSION"
 git checkout "$DOKKU_VERSION" > /dev/null
+if grep go-build Makefile > /dev/null; then
+  test -f "$BIN_STUBS/docker" && mv "$BIN_STUBS/docker" "$BIN_STUBS/docker-stub"
+  make go-build
+  test -f "$BIN_STUBS/docker-stub" && mv "$BIN_STUBS/docker-stub" "$BIN_STUBS/docker"
+fi
 cd -
 
-rm -rf "$DOKKU_ROOT/plugins/redirect"
-mkdir -p "$DOKKU_ROOT/plugins/redirect"
-find ./ -maxdepth 1 -type f -exec cp '{}' "$DOKKU_ROOT/plugins/redirect" \;
-cp ./templates -r "$DOKKU_ROOT/plugins/redirect"
+source "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")/config"
+rm -rf $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX
+mkdir -p $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX/templates
+find ./ -maxdepth 1 -type f -exec cp '{}' $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX \;
+find ./templates -maxdepth 1 -type f -exec cp '{}' $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX/templates \;
+echo "$DOKKU_VERSION" > $DOKKU_ROOT/VERSION
 
 if [[ ! -f $BIN_STUBS/plugn ]]; then
   wget -O- "$PLUGN_URL" | tar xzf - -C "$BIN_STUBS"
   plugn init
-  ln -s "$DOKKU_ROOT"/plugins/* "$DOKKU_ROOT"/plugins/available
-  ln -s "$DOKKU_ROOT"/plugins/* "$DOKKU_ROOT"/plugins/enabled
+  find "$DOKKU_ROOT/plugins" -mindepth 1 -maxdepth 1 -type d ! -name 'available' ! -name 'enabled' -exec ln -s {} "$DOKKU_ROOT/plugins/available" \;
+  find "$DOKKU_ROOT/plugins" -mindepth 1 -maxdepth 1 -type d ! -name 'available' ! -name 'enabled' -exec ln -s {} "$DOKKU_ROOT/plugins/enabled" \;
 fi
 
 if [[ ! -f $BIN_STUBS/sigil ]]; then

@@ -24,7 +24,12 @@ redirect_nginx_pre_load_trigger() {
   local NGINX_CONF="$APP_ROOT/nginx.conf"
   local NGINX_TEMPLATE="$(dirname "$0")/templates/nginx.conf.sigil"
   local PROXY_PORT_MAP=$(config_get "$APP" DOKKU_PROXY_PORT_MAP || true)
-  local NGINX_VERSION="$(nginx -v 2>&1 | cut -d'/' -f 2)"
+  local NGINX_LOCATION=$(get_nginx_location)
+  if [[ -z "$NGINX_LOCATION" ]]; then
+    exit 1;
+  fi
+
+  local NGINX_VERSION="$($NGINX_LOCATION -v 2>&1 | cut -d'/' -f 2 || true)"
   local SPDY_SUPPORTED="$(is_spdy_enabled "$NGINX_VERSION")"
   if is_ssl_enabled "$APP"; then
     local APP_SSL_PATH="$DOKKU_ROOT/$APP/tls"
@@ -40,6 +45,8 @@ redirect_nginx_pre_load_trigger() {
     local DEST_DOMAIN=$(echo "$line" | awk -F ':' '{ print $2 }')
     local REDIR_CODE=$(echo "$line" | awk -F ':' '{ print $3 ? $3 : "301" }')
     dokku_log_info1 "Configuring redirect for $DOMAIN to $DEST via HTTP $REDIR_CODE..."
+
+    # shellcheck disable=SC2191
     local SIGIL_PARAMS=(-f $NGINX_TEMPLATE APP="$APP" DOKKU_ROOT="$DOKKU_ROOT"
           SPDY_SUPPORTED="$SPDY_SUPPORTED"
           APP_SSL_PATH="$APP_SSL_PATH"
