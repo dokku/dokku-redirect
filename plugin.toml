@@ -1,4 +1,4 @@
 [plugin]
 description = "Plugin for managing application redirects"
-version = "0.5.0"
+version = "0.6.0"
 [plugin.config]
