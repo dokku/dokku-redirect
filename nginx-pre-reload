@@ -24,6 +24,7 @@ redirect_nginx_pre_load_trigger() {
   local NGINX_CONF="$APP_ROOT/nginx.conf"
   local NGINX_TEMPLATE="$(dirname "$0")/templates/nginx.conf.sigil"
   local PROXY_PORT_MAP=$(config_get "$APP" DOKKU_PROXY_PORT_MAP || true)
+  PROXY_PORT_MAP="$(echo -e "${PROXY_PORT_MAP}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
   local NGINX_LOCATION=$(get_nginx_location)
   if [[ -z "$NGINX_LOCATION" ]]; then
     exit 1;
