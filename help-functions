@@ -42,13 +42,13 @@ fn-help-all() {
 
     echo -e "${BOLD}usage${NORMAL}: dokku $PLUGIN_COMMAND_PREFIX[:COMMAND]"
     echo ''
-    echo -e "${BOLD}List your $PLUGIN_COMMAND_PREFIX services.${NORMAL}"
+    echo -e "${BOLD}Display the redirects set on app.${NORMAL}"
     echo ''
     echo -e "${BLUE}Example:${NORMAL}"
     echo ''
-    echo "    \$ dokku $PLUGIN_COMMAND_PREFIX:list"
+    echo "    \$ dokku $PLUGIN_COMMAND_PREFIX"
     echo ''
-    fn-help-list-example | column -c5 -t -s,
+    echo "       !     There are no redirects for plugins"
     echo ''
     echo -e "dokku ${BOLD}${PLUGIN_COMMAND_PREFIX}${NORMAL} commands: (get help with ${CYAN}dokku ${PLUGIN_COMMAND_PREFIX}:help SUBCOMMAND${NORMAL})"
     echo ''
