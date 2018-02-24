@@ -20,8 +20,9 @@ cd -
 
 source "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")/config"
 rm -rf $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX
-mkdir -p $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX/templates
+mkdir -p $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX/subcommands $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX/templates
 find ./ -maxdepth 1 -type f -exec cp '{}' $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX \;
+find ./subcommands -maxdepth 1 -type f -exec cp '{}' $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX/subcommands \;
 find ./templates -maxdepth 1 -type f -exec cp '{}' $DOKKU_ROOT/plugins/$PLUGIN_COMMAND_PREFIX/templates \;
 echo "$DOKKU_VERSION" > $DOKKU_ROOT/VERSION
 

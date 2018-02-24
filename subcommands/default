@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+source "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")/config"
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+source "$PLUGIN_BASE_PATH/common/functions"
+
+redirect-default-cmd() {
+  #E show redirect rules:
+  #E dokku $PLUGIN_COMMAND_PREFIX my-app
+  #A app, app to run command against
+  declare desc="display the redirects set on app"
+  local cmd="$PLUGIN_COMMAND_PREFIX" argv=("$@"); [[ ${argv[0]} == "$cmd" ]] && shift 1
+  declare APP="$1"
+  [[ -z "$APP" ]] && echo "Please specify an app to run the command on" && exit 1
+  verify_app_name "$APP"
+
+  local APP_ROOT="$DOKKU_ROOT/$APP"
+  local REDIRECT_FILE="$APP_ROOT/REDIRECTS"
+
+  [[ ! -s "$REDIRECT_FILE" ]] && dokku_log_warn "There are no redirects for $APP" && exit 0
+  (echo "SOURCE:DESTINATION:CODE"; awk -F ':' 'BEGIN { OFS=":" } { if ($3 == "") { $3 = "301" }; print }' "$DOKKU_ROOT/$APP/REDIRECTS") | column -s: -t
+}
+
+redirect-default-cmd "$@"
