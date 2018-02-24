@@ -20,15 +20,27 @@ else
 endif
 endif
 
-ci-dependencies: shellcheck bats
+nginx:
+ifeq ($(shell nginx > /dev/null 2>&1 ; echo $$?),127)
+	sudo apt-get update -qq && sudo apt-get install -qq -y nginx
+endif
+
+readlink:
+ifeq ($(shell uname),Darwin)
+ifeq ($(shell greadlink > /dev/null 2>&1 ; echo $$?),127)
+	brew install coreutils
+endif
+	ln -nfs `which greadlink` tests/bin/readlink
+endif
+
+ci-dependencies: shellcheck bats readlink nginx
 
 lint:
 	# these are disabled due to their expansive existence in the codebase. we should clean it up though
-	# SC2046: Quote this to prevent word splitting. - https://github.com/koalaman/shellcheck/wiki/SC2046
-	# SC2068: Double quote array expansions, otherwise they're like $* and break on spaces. - https://github.com/koalaman/shellcheck/wiki/SC2068
-	# SC2086: Double quote to prevent globbing and word splitting - https://github.com/koalaman/shellcheck/wiki/SC2086
+	# SC1090: Can't follow non-constant source. Use a directive to specify location - https://github.com/koalaman/shellcheck/wiki/SC1090
+	# SC2155: Declare and assign separately to avoid masking return values - https://github.com/koalaman/shellcheck/wiki/SC2155
 	@echo linting...
-	@$(QUIET) find ./ -maxdepth 1 -not -path '*/\.*' | xargs file | egrep "shell|bash" | awk '{ print $$1 }' | sed 's/://g' | xargs shellcheck -e SC2046,SC2068,SC2086
+	@$(QUIET) find ./ -maxdepth 1 -not -path '*/\.*' | xargs file | egrep "shell|bash" | awk '{ print $$1 }' | sed 's/://g' | xargs shellcheck -e SC1090,SC2155
 
 unit-tests:
 	@echo running unit tests...

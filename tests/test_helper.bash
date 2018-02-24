@@ -8,8 +8,14 @@ export PLUGIN_ENABLED_PATH="$PLUGIN_PATH"
 export PLUGIN_AVAILABLE_PATH="$PLUGIN_PATH"
 export PLUGIN_CORE_AVAILABLE_PATH="$PLUGIN_PATH"
 export PLUGIN_DATA_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/fixtures"
-export PLUGN_URL="https://github.com/dokku/plugn/releases/download/v0.2.1/plugn_0.2.1_linux_x86_64.tgz"
-export SIGIL_URL="https://github.com/gliderlabs/sigil/releases/download/v0.4.0/sigil_0.4.0_Linux_x86_64.tgz"
+export DOKKU_LIB_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib-root"
+if [[ "$(uname)" == "Darwin" ]]; then
+  export PLUGN_URL="https://github.com/dokku/plugn/releases/download/v0.3.0/plugn_0.3.0_darwin_x86_64.tgz"
+  export SIGIL_URL="https://github.com/gliderlabs/sigil/releases/download/v0.4.0/sigil_0.4.0_Darwin_x86_64.tgz"
+else
+  export PLUGN_URL="https://github.com/dokku/plugn/releases/download/v0.3.0/plugn_0.3.0_linux_x86_64.tgz"
+  export SIGIL_URL="https://github.com/gliderlabs/sigil/releases/download/v0.4.0/sigil_0.4.0_Linux_x86_64.tgz"
+fi
 
 mkdir -p "$PLUGIN_DATA_ROOT"
 rm -rf "${PLUGIN_DATA_ROOT:?}"/*
