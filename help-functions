@@ -46,9 +46,9 @@ fn-help-all() {
     echo ''
     echo -e "${BLUE}Example:${NORMAL}"
     echo ''
-    echo "    \$ dokku $PLUGIN_COMMAND_PREFIX"
+    echo "    \$ dokku $PLUGIN_COMMAND_PREFIX my-app"
     echo ''
-    echo "       !     There are no redirects for plugins"
+    echo "       !     There are no redirects for my-app"
     echo ''
     echo -e "dokku ${BOLD}${PLUGIN_COMMAND_PREFIX}${NORMAL} commands: (get help with ${CYAN}dokku ${PLUGIN_COMMAND_PREFIX}:help SUBCOMMAND${NORMAL})"
     echo ''
