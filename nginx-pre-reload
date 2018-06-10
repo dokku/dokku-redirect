@@ -45,7 +45,7 @@ redirect_nginx_pre_load_trigger() {
     local DOMAIN=$(echo "$line" | awk -F ':' '{ print $1 }')
     local DEST_DOMAIN=$(echo "$line" | awk -F ':' '{ print $2 }')
     local REDIR_CODE=$(echo "$line" | awk -F ':' '{ print $3 ? $3 : "301" }')
-    dokku_log_info1 "Configuring redirect for $DOMAIN to $DEST via HTTP $REDIR_CODE..."
+    dokku_log_info1 "Configuring redirect for $DOMAIN to $DEST_DOMAIN via HTTP $REDIR_CODE..."
 
     # shellcheck disable=SC2191
     local SIGIL_PARAMS=(-f $NGINX_TEMPLATE APP="$APP" DOKKU_ROOT="$DOKKU_ROOT"
