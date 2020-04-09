@@ -19,7 +19,7 @@ redirect_nginx_pre_load_trigger() {
   local REDIRECT_FILE="$APP_ROOT/REDIRECTS"
   [[ ! -s "$REDIRECT_FILE" ]] && exit 0
 
-  [[ "$(get_app_proxy_type "$APP")" == "nginx" ]] || exit 0
+  [[ "$(plugn trigger proxy-type "$APP")" == "nginx" ]] || exit 0
 
   local NGINX_CONF="$APP_ROOT/nginx.conf"
   local NGINX_TEMPLATE="$(dirname "$0")/templates/nginx.conf.sigil"
