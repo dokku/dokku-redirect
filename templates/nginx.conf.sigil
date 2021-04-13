@@ -9,6 +9,8 @@ server {
   listen      {{ $listen_port }};
   server_name {{ $.DOMAIN }};
   access_log  off;
+
+  include {{ $.DOKKU_ROOT }}/{{ $.APP }}/nginx.conf.d/*.conf;
   return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
 }
 {{ else if eq $scheme "https"}}
@@ -21,6 +23,7 @@ server {
   ssl_certificate     {{ $.APP_SSL_PATH }}/server.crt;
   ssl_certificate_key {{ $.APP_SSL_PATH }}/server.key;
 
+  include {{ $.DOKKU_ROOT }}/{{ $.APP }}/nginx.conf.d/*.conf;
   return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
 }
 {{ end }}{{ end }}

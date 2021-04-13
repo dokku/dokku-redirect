@@ -29,7 +29,6 @@ $ dokku help
 | 303  | See Other          | (HTTP/1.1) Temporary, changes method to GET        |
 | 307  | Temporary Redirect | (HTTP/1.1) Temporary, preserves method             |
 
-
 ## Usage
 
 Check redirects on my-app
@@ -47,6 +46,8 @@ $ dokku redirect:set my-app ma.dokku.me my-app.dokku.me
 -----> Setting redirect for my-app...
        done
 ```
+
+Redirects will include all app-specific nginx include files.
 
 Unset an existing redirect
 ```shell
