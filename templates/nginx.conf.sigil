@@ -11,7 +11,9 @@ server {
   access_log  off;
 
   include {{ $.DOKKU_ROOT }}/{{ $.APP }}/nginx.conf.d/*.conf;
-  return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
+  location / {
+    return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
+  }
 }
 {{ else if eq $scheme "https"}}
 server {
@@ -24,6 +26,8 @@ server {
   ssl_certificate_key {{ $.APP_SSL_PATH }}/server.key;
 
   include {{ $.DOKKU_ROOT }}/{{ $.APP }}/nginx.conf.d/*.conf;
-  return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
+  location / {
+    return {{ $.REDIR_CODE }}  $scheme://{{ $.DEST_DOMAIN }}$request_uri;
+  }
 }
 {{ end }}{{ end }}
