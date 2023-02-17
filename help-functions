@@ -32,7 +32,7 @@ fn-help-all() {
   local CMD_OUTPUT BLUE BOLD FULL_OUTPUT NORMAL
   FULL_OUTPUT=true
 
-  if [[ "$CMD" == "$PLUGIN_COMMAND_PREFIX:help" ]] ; then
+  if [[ "$CMD" == "$PLUGIN_COMMAND_PREFIX:help" ]]; then
     BOLD="$(fn-help-fancy-tput bold)"
     NORMAL="$(fn-help-fancy-color "\033[m")"
     BLUE="$(fn-help-fancy-color "\033[0;34m")"

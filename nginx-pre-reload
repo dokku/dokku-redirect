@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
 
 source "$PLUGIN_AVAILABLE_PATH/common/functions"
 source "$PLUGIN_AVAILABLE_PATH/certs/functions"
@@ -28,7 +29,7 @@ redirect_nginx_pre_load_trigger() {
   PROXY_PORT_MAP="$(echo -e "${PROXY_PORT_MAP}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
   local NGINX_LOCATION=$(get_nginx_location)
   if [[ -z "$NGINX_LOCATION" ]]; then
-    exit 1;
+    exit 1
   fi
 
   local NGINX_VERSION="$($NGINX_LOCATION -v 2>&1 | cut -d'/' -f 2 || true)"
@@ -50,16 +51,16 @@ redirect_nginx_pre_load_trigger() {
 
     # shellcheck disable=SC2191
     local SIGIL_PARAMS=(-f $NGINX_TEMPLATE APP="$APP" DOKKU_ROOT="$DOKKU_ROOT"
-          SPDY_SUPPORTED="$SPDY_SUPPORTED"
-          APP_SSL_PATH="$APP_SSL_PATH"
-          DOMAIN="$DOMAIN" DEST_DOMAIN="$DEST_DOMAIN" REDIR_CODE="$REDIR_CODE"
-          PROXY_PORT_MAP="$PROXY_PORT_MAP")
-    sigil "${SIGIL_PARAMS[@]}" | cat -s >> "$NGINX_CONF_PREPEND"
-  done <<< "$(< "$REDIRECT_FILE")"
+      SPDY_SUPPORTED="$SPDY_SUPPORTED"
+      APP_SSL_PATH="$APP_SSL_PATH"
+      DOMAIN="$DOMAIN" DEST_DOMAIN="$DEST_DOMAIN" REDIR_CODE="$REDIR_CODE"
+      PROXY_PORT_MAP="$PROXY_PORT_MAP")
+    sigil "${SIGIL_PARAMS[@]}" | cat -s >>"$NGINX_CONF_PREPEND"
+  done <<<"$(<"$REDIRECT_FILE")"
 
   if [[ -s "$NGINX_CONF_PREPEND" ]]; then
-    cat "$NGINX_CONF" >> "$NGINX_CONF_PREPEND"
-    cat "$NGINX_CONF_PREPEND" > "$NGINX_CONF"
+    cat "$NGINX_CONF" >>"$NGINX_CONF_PREPEND"
+    cat "$NGINX_CONF_PREPEND" >"$NGINX_CONF"
   fi
 }
 

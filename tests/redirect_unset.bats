@@ -30,4 +30,3 @@ teardown() {
   [[ ! -s $DOKKU_ROOT/my_app/REDIRECTS ]]
   assert_contains "${lines[*]}" "Unsetting redirect for my_app..."
 }
-

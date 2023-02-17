@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 source "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")/config"
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
 source "$PLUGIN_BASE_PATH/common/functions"
 
 redirect-unset-cmd() {
@@ -9,7 +10,8 @@ redirect-unset-cmd() {
   #A app, app to run command against
   #A domain, domain redirect to remove
   declare desc="unset a redirect from <source>"
-  local cmd="$PLUGIN_COMMAND_PREFIX:unset" argv=("$@"); [[ ${argv[0]} == "$cmd" ]] && shift 1
+  local cmd="$PLUGIN_COMMAND_PREFIX:unset" argv=("$@")
+  [[ ${argv[0]} == "$cmd" ]] && shift 1
   declare APP="$1" DOMAIN="$2"
   [[ -z "$APP" ]] && echo "Please specify an app to run the command on" && exit 1
   verify_app_name "$APP"

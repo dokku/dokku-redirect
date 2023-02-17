@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 source "$(dirname "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)")/config"
-set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+set -eo pipefail
+[[ $DOKKU_TRACE ]] && set -x
 source "$PLUGIN_BASE_PATH/common/functions"
 
 redirect-set-cmd() {
@@ -13,7 +14,8 @@ redirect-set-cmd() {
   #A dest, source domain
   #A code, (optional) redirect code
   declare desc="set a redirect from <src> domain to <dest> domain"
-  local cmd="$PLUGIN_COMMAND_PREFIX:set" argv=("$@"); [[ ${argv[0]} == "$cmd" ]] && shift 1
+  local cmd="$PLUGIN_COMMAND_PREFIX:set" argv=("$@")
+  [[ ${argv[0]} == "$cmd" ]] && shift 1
   declare APP="$1" SOURCE="$2" DEST="$3" CODE="${4:-301}"
   [[ -z "$APP" ]] && echo "Please specify an app to run the command on" && exit 1
   verify_app_name "$APP"
@@ -25,7 +27,7 @@ redirect-set-cmd() {
   touch "$REDIRECT_FILE"
   grep -q "^$SOURCE:" "$REDIRECT_FILE" && dokku_log_fail "Source domain is already redirected"
   dokku_log_info1 "Setting redirect for $APP..."
-  echo "$SOURCE:$DEST:$CODE" >> "$REDIRECT_FILE"
+  echo "$SOURCE:$DEST:$CODE" >>"$REDIRECT_FILE"
   is_deployed "$APP" && plugn trigger proxy-build-config "$APP"
   dokku_log_verbose "Done"
 }
