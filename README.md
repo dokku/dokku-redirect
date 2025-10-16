@@ -8,7 +8,7 @@ This plugin only redirects one domain to another and does not handle complete UR
 
 ```sh
 # dokku 0.11+
-$ dokku plugin:install https://github.com/dokku/dokku-redirect.git
+$ sudo dokku plugin:install https://github.com/dokku/dokku-redirect.git
 ```
 
 ## Commands
